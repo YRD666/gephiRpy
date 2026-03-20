@@ -1,0 +1,24 @@
+Package: gephir
+Title: R Interface to Gephi Graph Analysis Toolkit
+Version: 2.0.0
+Authors@R: person("yangr", role = c("aut", "cre"), email = "yangr@example.com")
+Description: Provides a comprehensive R interface to the Gephi graph analysis toolkit
+    via the 'gephi-cli' Python package and 'reticulate'. Supports graph import/export
+    (GEXF, GraphML, GML, CSV, etc.), 11 layout algorithms, 15+ metrics, 17 filters,
+    11 graph generators, and image/PDF/SVG rendering. Interoperates with 'igraph',
+    data.frame, and adjacency matrix objects.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.0
+Imports:
+    reticulate (>= 1.28)
+Suggests:
+    igraph,
+    testthat (>= 3.0.0)
+Config/reticulate:
+  list(
+    packages = list(
+      list(package = "gephi-cli", pip = TRUE)
+    )
+  )

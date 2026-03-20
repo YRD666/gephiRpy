@@ -1,0 +1,720 @@
+---
+title: "gephi-cli R 完整使用教程"
+author: "gephir"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    theme: cosmo
+    highlight: tango
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+## 简介
+
+本教程演示 `gephir` 包的所有功能模块：
+
+| 模块 | 功能 |
+|------|------|
+| 1. 初始化 | gephi_init() 配置 |
+| 2. 图生成 | 11种图生成器 (随机、无标度、小世界等) |
+| 3. 图导入 | 文件、边列表、邻接矩阵、data.frame、igraph |
+| 4. 图导出 | 文件、data.frame、igraph |
+| 5. 图信息与验证 | 基本信息、结构质量报告 |
+| 6. 布局算法 | 11种布局 + 归一化 |
+| 7. 图指标 | 15种指标 (度、PageRank、模块度等) |
+| 8. 过滤器 | 度、巨分量、K-核、属性、自我网络 |
+| 9. 外观样式 | 节点/边颜色、大小、标签 |
+| 10. 预览与导出 | PNG/PDF/SVG + 预设 |
+| 11. 最短路径 | Dijkstra 算法 |
+| 12. YAML 流水线 | 多步自动化 |
+| 13. 一键可视化 | gephi_quick() |
+
+**运行前请确保：**
+
+```bash
+pip install gephi-cli
+python download_toolkit.py
+install.packages("devtools")
+devtools::install_local("gephir")
+```
+
+## 1. 初始化
+
+```{r init}
+library(gephir)
+
+OUTPUT_DIR <- "tutorial_output_R"
+dir.create(OUTPUT_DIR, showWarnings = FALSE, recursive = TRUE)
+
+# 初始化 gephi-cli Python 后端
+# 如果 reticulate 未自动找到正确的 Python，需手动指定:
+gephi_init(python = "C:/Users/yangr/AppData/Local/Programs/Python/Python312/python.exe")
+```
+
+## 2. 图生成 - 11种
+
+### 2.1 随机图 (Erdos-Renyi)
+
+```{r gen-random}
+ws <- gephi_generate("random", node_count = 100, wiring_prob = 0.05)
+info <- gephi_info(ws)
+cat(sprintf("随机图: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.2 无标度网络 (Barabasi-Albert)
+
+```{r gen-scalefree}
+ws <- gephi_generate("scale_free", node_count = 200, m = 3)
+info <- gephi_info(ws)
+cat(sprintf("无标度网络: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.3 小世界网络 (Watts-Strogatz)
+
+```{r gen-smallworld}
+ws <- gephi_generate("small_world", node_count = 100, k = 6, beta = 0.3)
+info <- gephi_info(ws)
+cat(sprintf("小世界网络: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.4 完全图
+
+```{r gen-complete}
+ws <- gephi_generate("complete", node_count = 15)
+info <- gephi_info(ws)
+cat(sprintf("完全图: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.5 星形图
+
+```{r gen-star}
+ws <- gephi_generate("star", node_count = 20)
+info <- gephi_info(ws)
+cat(sprintf("星形图: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.6 环形图
+
+```{r gen-ring}
+ws <- gephi_generate("ring", node_count = 20)
+info <- gephi_info(ws)
+cat(sprintf("环形图: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.7 网格图
+
+```{r gen-grid}
+ws <- gephi_generate("grid", rows = 8, cols = 8)
+info <- gephi_info(ws)
+cat(sprintf("网格图: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.8 树形图
+
+```{r gen-tree}
+ws <- gephi_generate("tree", depth = 4, branching = 3)
+info <- gephi_info(ws)
+cat(sprintf("树形图: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.9 路径图
+
+```{r gen-path}
+ws <- gephi_generate("path", node_count = 15)
+info <- gephi_info(ws)
+cat(sprintf("路径图: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.10 空图
+
+```{r gen-empty}
+ws <- gephi_generate("empty", node_count = 10)
+info <- gephi_info(ws)
+cat(sprintf("空图: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 2.11 动态图
+
+```{r gen-dynamic}
+ws <- gephi_generate("dynamic")
+info <- gephi_info(ws)
+cat(sprintf("动态图: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+## 3. 图导入 - 5种方式
+
+### 3.1 从 data.frame 导入
+
+```{r import-df}
+edges_df <- data.frame(
+  source = c("Alice", "Bob", "Charlie", "David", "Eve"),
+  target = c("Bob", "Charlie", "David", "Eve", "Alice"),
+  weight = c(1.0, 2.0, 1.5, 3.0, 0.5),
+  stringsAsFactors = FALSE
+)
+ws <- gephi_import_df(edges_df)
+info <- gephi_info(ws)
+cat(sprintf("data.frame 导入: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 3.2 从边列表导入
+
+```{r import-edges}
+edges_list <- list(
+  c("X", "Y"),
+  c("Y", "Z", "2.0"),
+  c("Z", "X", "1.5")
+)
+ws <- gephi_import_edges(edges_list)
+info <- gephi_info(ws)
+cat(sprintf("边列表导入: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 3.3 从邻接矩阵导入
+
+```{r import-matrix}
+mat <- matrix(c(
+  0, 1, 0, 1,
+  1, 0, 1, 0,
+  0, 1, 0, 1,
+  1, 0, 1, 0
+), nrow = 4, byrow = TRUE)
+ws <- gephi_import_matrix(mat, labels = c("北京", "上海", "广州", "深圳"))
+info <- gephi_info(ws)
+cat(sprintf("邻接矩阵导入: %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+### 3.4 从 igraph 导入
+
+```{r import-igraph}
+if (requireNamespace("igraph", quietly = TRUE)) {
+  library(igraph)
+  g <- sample_gnp(50, 0.08)
+  ws <- gephi_import_igraph(g)
+  info <- gephi_info(ws)
+  cat(sprintf("igraph 导入: %d 节点, %d 边\n", info$node_count, info$edge_count))
+} else {
+  cat("igraph 未安装，跳过\n")
+}
+```
+
+### 3.5 从文件导入
+
+```{r import-file}
+ws_gen <- gephi_generate("scale_free", node_count = 50, m = 2)
+gephi_export(ws_gen, file.path(OUTPUT_DIR, "sample.gexf"))
+ws <- gephi_import(file.path(OUTPUT_DIR, "sample.gexf"))
+info <- gephi_info(ws)
+cat(sprintf("文件导入 (GEXF): %d 节点, %d 边\n", info$node_count, info$edge_count))
+```
+
+## 4. 图导出
+
+```{r export-setup}
+ws <- gephi_generate("scale_free", node_count = 30, m = 2)
+```
+
+### 4.1 导出为文件
+
+```{r export-file}
+gephi_export(ws, file.path(OUTPUT_DIR, "export.gexf"))
+cat(sprintf("GEXF: %d 字节\n", file.info(file.path(OUTPUT_DIR, "export.gexf"))$size))
+```
+
+### 4.2 导出到 data.frame
+
+```{r export-df}
+dfs <- gephi_to_df(ws)
+cat(sprintf("导出 data.frame: %d 边, %d 节点\n", nrow(dfs$edges), nrow(dfs$nodes)))
+cat("边表前3行:\n")
+print(head(dfs$edges, 3))
+cat("节点表前3行:\n")
+print(head(dfs$nodes, 3))
+```
+
+### 4.3 导出到 igraph
+
+```{r export-igraph}
+if (requireNamespace("igraph", quietly = TRUE)) {
+  g2 <- gephi_to_igraph(ws)
+  cat(sprintf("igraph 导出: %d 节点, %d 边\n",
+              igraph::vcount(g2), igraph::ecount(g2)))
+} else {
+  cat("igraph 未安装，跳过\n")
+}
+```
+
+## 5. 图信息与验证
+
+```{r info-setup}
+ws <- gephi_generate("scale_free", node_count = 100, m = 2)
+```
+
+### 5.1 基本信息
+
+```{r info}
+info <- gephi_info(ws)
+cat("图信息:\n")
+for (k in names(info)) {
+  cat(sprintf("  %s: %s\n", k, paste(info[[k]], collapse = ", ")))
+}
+```
+
+### 5.2 验证
+
+```{r validate}
+report <- gephi_validate(ws)
+cat("验证报告:\n")
+for (k in names(report)) {
+  cat(sprintf("  %s: %s\n", k, paste(report[[k]], collapse = ", ")))
+}
+```
+
+### 5.3 查看节点和边
+
+```{r nodes-edges}
+nodes_df <- gephi_nodes(ws, limit = 5L)
+cat("前5个节点:\n")
+print(nodes_df)
+
+edges_df <- gephi_edges(ws, limit = 5L)
+cat("\n前5条边:\n")
+print(edges_df)
+```
+
+## 6. 布局算法 - 11种 + 归一化
+
+```{r layout-setup}
+ws <- gephi_generate("scale_free", node_count = 80, m = 2)
+```
+
+### 6.1 查看可用布局
+
+```{r layout-list}
+algos <- gephi_list("layouts")
+cat(sprintf("可用布局: %d 种\n", length(algos)))
+cat(paste("  ", algos, collapse = "\n"), "\n")
+```
+
+### 6.2 ForceAtlas2 - 迭代模式
+
+```{r layout-fa2-iter}
+r <- gephi_layout(ws, "forceatlas2", iterations = 100L)
+cat(sprintf("ForceAtlas2 (迭代): %d 次\n", r$iterations_run))
+```
+
+### 6.3 ForceAtlas2 - 持续时间模式
+
+```{r layout-fa2-duration}
+r <- gephi_layout(ws, "forceatlas2", duration = 3)
+cat(sprintf("ForceAtlas2 (3秒): %d 次迭代\n", r$iterations_run))
+```
+
+### 6.4 其他布局
+
+```{r layout-others}
+for (algo in c("fruchterman_reingold", "yifan_hu", "forceatlas1")) {
+  r <- gephi_layout(ws, algo, iterations = 30L)
+  cat(sprintf("%s: %d 次迭代\n", algo, r$iterations_run))
+}
+```
+
+### 6.5 调整类布局
+
+```{r layout-adjust}
+for (algo in c("label_adjust", "noverlap")) {
+  r <- gephi_layout(ws, algo, iterations = 10L)
+  cat(sprintf("%s: %d 次迭代\n", algo, r$iterations_run))
+}
+```
+
+### 6.6 变换类布局
+
+```{r layout-transform}
+for (algo in c("random", "rotate", "expand", "contract")) {
+  r <- gephi_layout(ws, algo, iterations = 1L)
+  cat(sprintf("%s: OK\n", algo))
+}
+```
+
+### 6.7 归一化
+
+```{r layout-normalize}
+r <- gephi_normalize(ws)
+cat(sprintf("归一化: 缩放因子=%.2f\n", r$scale_factor))
+```
+
+## 7. 图指标 - 15种
+
+```{r metrics-setup}
+ws <- gephi_generate("scale_free", node_count = 100, m = 2)
+```
+
+### 7.1 查看可用指标
+
+```{r metrics-list}
+metric_names <- gephi_list("metrics")
+cat(sprintf("可用指标: %d 种\n", length(metric_names)))
+```
+
+### 7.2 逐个计算
+
+```{r metrics-compute}
+r <- gephi_metric(ws, "degree")
+cat(sprintf("度: 平均度=%.2f\n", r$average_degree))
+
+r <- gephi_metric(ws, "pagerank")
+cat("PageRank: 计算完成\n")
+
+r <- gephi_metric(ws, "betweenness")
+cat(sprintf("介数: 直径=%s, 平均路径=%.2f\n", r$diameter, r$avg_path_length))
+
+r <- gephi_metric(ws, "modularity")
+cat(sprintf("模块度: %.4f\n", r$modularity_score))
+
+r <- gephi_metric(ws, "modularity", resolution = 2.0)
+cat(sprintf("模块度 (resolution=2.0): %.4f\n", r$modularity_score))
+
+r <- gephi_metric(ws, "eigenvector")
+cat(sprintf("特征向量: %d 次迭代\n", r$iterations))
+
+r <- gephi_metric(ws, "hits")
+cat("HITS: 计算完成\n")
+
+r <- gephi_metric(ws, "clustering_coefficient")
+cat(sprintf("聚类系数: %.4f\n", r$avg_clustering_coefficient))
+
+r <- gephi_metric(ws, "connected_components")
+cat(sprintf("连通分量: %d 个\n", r$component_count))
+
+r <- gephi_metric(ws, "density")
+cat(sprintf("密度: %.6f\n", r$density))
+
+r <- gephi_metric(ws, "diameter")
+cat(sprintf("直径: %s\n", r$diameter))
+```
+
+### 7.3 一次运行所有指标
+
+```{r metrics-all}
+all_r <- gephi_all_metrics(ws)
+cat(sprintf("一次全部运行: %d 个指标\n", length(all_r)))
+```
+
+## 8. 过滤器
+
+```{r filter-setup}
+ws <- gephi_generate("scale_free", node_count = 100, m = 2)
+gephi_metric(ws, "degree")
+gephi_metric(ws, "modularity")
+```
+
+### 8.1 度过滤
+
+```{r filter-degree}
+r <- gephi_filter_degree(ws, min = 3)
+cat(sprintf("度 >= 3: %d 节点可见\n", r$visible_nodes))
+gephi_filter_reset(ws)
+```
+
+### 8.2 巨分量
+
+```{r filter-giant}
+r <- gephi_filter_giant(ws)
+cat(sprintf("巨分量: %d 节点可见\n", r$visible_nodes))
+gephi_filter_reset(ws)
+```
+
+### 8.3 K-核
+
+```{r filter-kcore}
+r <- gephi_filter_kcore(ws, k = 2L)
+cat(sprintf("2-核: %d 节点可见\n", r$visible_nodes))
+gephi_filter_reset(ws)
+```
+
+### 8.4 自我网络
+
+```{r filter-ego}
+r <- gephi_filter_ego(ws, "0", depth = 1L)
+cat(sprintf("自我网络 (节点0): %d 节点可见\n", r$visible_nodes))
+gephi_filter_reset(ws)
+```
+
+### 8.5 属性过滤
+
+```{r filter-attribute}
+r <- gephi_filter_attribute(ws, "modularity_class", 0L)
+cat(sprintf("模块0: %d 节点可见\n", r$visible_nodes))
+gephi_filter_reset(ws)
+```
+
+### 8.6 重置
+
+```{r filter-reset}
+r <- gephi_filter_reset(ws)
+cat(sprintf("重置后: %d 节点\n", r$visible_nodes))
+```
+
+## 9. 外观样式
+
+```{r appearance-setup}
+ws <- gephi_generate("scale_free", node_count = 80, m = 2)
+gephi_layout(ws, "forceatlas2", duration = 2)
+gephi_normalize(ws)
+gephi_metric(ws, "modularity")
+gephi_metric(ws, "pagerank")
+```
+
+### 9.1 模块度着色
+
+```{r color-modularity}
+r <- gephi_color_modularity(ws)
+cat(sprintf("模块度着色: %d 个分区\n", r$partitions))
+```
+
+### 9.2 按分区着色
+
+```{r color-partition}
+r <- gephi_color_partition(ws, "modularity_class")
+cat(sprintf("分区着色: %d 个分区\n", r$partitions))
+```
+
+### 9.3 统一颜色
+
+```{r color-nodes}
+gephi_color_nodes(ws, 70, 130, 180)
+cat("统一颜色: SteelBlue\n")
+```
+
+### 9.4 边颜色
+
+```{r color-edges}
+gephi_color_edges(ws, 180, 180, 180)
+cat("边颜色: 灰色\n")
+```
+
+### 9.5 按属性调大小
+
+```{r size-by}
+r <- gephi_size_by(ws, "pageranks", min_size = 5, max_size = 40)
+cat(sprintf("按 PageRank 调大小: [%d, %d]\n", r$range[[1]], r$range[[2]]))
+```
+
+### 9.6 标签
+
+```{r labels}
+gephi_labels(ws)
+cat("标签: 已设置\n")
+```
+
+## 10. 预览与图片导出
+
+```{r preview-setup}
+# 重新准备一个漂亮的图
+ws <- gephi_generate("scale_free", node_count = 100, m = 2)
+gephi_layout(ws, "forceatlas2", duration = 3)
+gephi_normalize(ws)
+gephi_metric(ws, "modularity")
+gephi_metric(ws, "pagerank")
+gephi_color_modularity(ws)
+gephi_size_by(ws, "pageranks", min_size = 5, max_size = 40)
+gephi_labels(ws)
+```
+
+### 10.1 预设
+
+```{r presets}
+for (p in c("default", "black_background", "text_outline")) {
+  gephi_preset(ws, p)
+  cat(sprintf("预设 '%s': 已应用\n", p))
+}
+```
+
+### 10.2 自定义预览
+
+```{r preview-custom}
+gephi_preview(ws, show_labels = TRUE, edge_opacity = 30)
+cat("自定义预览设置: 已应用\n")
+```
+
+### 10.3 导出 PNG (白底)
+
+```{r export-png-default}
+gephi_preset(ws, "default")
+gephi_preview(ws, show_labels = TRUE, edge_opacity = 30)
+gephi_export_image(ws, file.path(OUTPUT_DIR, "demo_default.png"),
+                   width = 2048L, height = 2048L)
+cat(sprintf("PNG (白底): %d 字节\n",
+            file.info(file.path(OUTPUT_DIR, "demo_default.png"))$size))
+```
+
+### 10.4 导出 PNG (黑底)
+
+```{r export-png-black}
+gephi_preset(ws, "black_background")
+gephi_preview(ws, show_labels = TRUE, edge_opacity = 50)
+gephi_export_image(ws, file.path(OUTPUT_DIR, "demo_black.png"),
+                   width = 2048L, height = 2048L)
+cat(sprintf("PNG (黑底): %d 字节\n",
+            file.info(file.path(OUTPUT_DIR, "demo_black.png"))$size))
+```
+
+### 10.5 导出 PDF
+
+```{r export-pdf}
+gephi_preset(ws, "default")
+gephi_export_pdf(ws, file.path(OUTPUT_DIR, "demo.pdf"))
+cat(sprintf("PDF: %d 字节\n",
+            file.info(file.path(OUTPUT_DIR, "demo.pdf"))$size))
+```
+
+### 10.6 导出 SVG
+
+```{r export-svg}
+gephi_export_svg(ws, file.path(OUTPUT_DIR, "demo.svg"))
+cat(sprintf("SVG: %d 字节\n",
+            file.info(file.path(OUTPUT_DIR, "demo.svg"))$size))
+```
+
+## 11. 最短路径
+
+```{r shortest-path}
+ws <- gephi_generate("grid", rows = 5, cols = 5)
+
+r <- gephi_shortest_path(ws, "0", "24")
+cat(sprintf("路径 0 -> 24:\n"))
+cat(sprintf("  距离: %s\n", r$distance))
+cat(sprintf("  路径: %s\n", paste(r$path, collapse = " -> ")))
+cat(sprintf("  节点数: %d\n", r$path_length))
+```
+
+## 12. YAML 流水线
+
+```{r pipeline}
+yaml_content <- '
+steps:
+  - action: generate
+    type: scale_free
+    nodes: 150
+    m: 3
+  - action: layout
+    algorithm: forceatlas2
+    duration: 3
+  - action: normalize
+  - action: metric
+    name: modularity
+  - action: metric
+    name: pagerank
+  - action: appearance
+    type: color_by_modularity
+  - action: appearance
+    type: size_by_attribute
+    column: pageranks
+    min_size: 5
+    max_size: 40
+  - action: preview
+    preset: default
+    show_labels: true
+    edge_opacity: 30
+  - action: export
+    file: tutorial_output_R/pipeline_result.png
+    width: 2048
+    height: 2048
+'
+
+yaml_path <- file.path(OUTPUT_DIR, "demo_pipeline.yaml")
+writeLines(yaml_content, yaml_path)
+cat(sprintf("YAML 已保存: %s\n", yaml_path))
+
+results <- gephi_pipeline(yaml_path)
+cat(sprintf("执行完成: %d 个步骤\n", length(results)))
+
+png_path <- file.path(OUTPUT_DIR, "pipeline_result.png")
+if (file.exists(png_path)) {
+  cat(sprintf("输出 PNG: %d 字节\n", file.info(png_path)$size))
+}
+```
+
+## 13. 一键可视化 gephi_quick()
+
+### 13.1 从 data.frame 快速可视化
+
+```{r quick-df}
+edges <- data.frame(
+  source = c("A", "B", "C", "D", "E", "F", "G"),
+  target = c("B", "C", "A", "E", "F", "D", "A"),
+  weight = c(1, 2, 1.5, 3, 1, 2, 0.5),
+  stringsAsFactors = FALSE
+)
+gephi_quick(edges, file.path(OUTPUT_DIR, "quick_df.png"),
+            duration = 3, width = 2048L, height = 2048L)
+cat(sprintf("data.frame 快速可视化: %d 字节\n",
+            file.info(file.path(OUTPUT_DIR, "quick_df.png"))$size))
+```
+
+### 13.2 从矩阵快速可视化
+
+```{r quick-matrix}
+mat <- matrix(c(
+  0, 1, 1, 0,
+  1, 0, 0, 1,
+  1, 0, 0, 1,
+  0, 1, 1, 0
+), nrow = 4, byrow = TRUE)
+gephi_quick(mat, file.path(OUTPUT_DIR, "quick_matrix.png"),
+            algorithm = "yifan_hu", duration = 2)
+cat(sprintf("矩阵快速可视化: %d 字节\n",
+            file.info(file.path(OUTPUT_DIR, "quick_matrix.png"))$size))
+```
+
+### 13.3 从 igraph 快速可视化 (黑底 PDF)
+
+```{r quick-igraph}
+if (requireNamespace("igraph", quietly = TRUE)) {
+  g <- igraph::sample_gnp(80, 0.05)
+  gephi_quick(g, file.path(OUTPUT_DIR, "quick_igraph.pdf"),
+              preset = "black_background", duration = 3)
+  cat(sprintf("igraph 快速可视化 (PDF): %d 字节\n",
+              file.info(file.path(OUTPUT_DIR, "quick_igraph.pdf"))$size))
+}
+```
+
+### 13.4 从文件快速可视化
+
+```{r quick-file}
+gephi_quick(file.path(OUTPUT_DIR, "sample.gexf"),
+            file.path(OUTPUT_DIR, "quick_file.png"),
+            duration = 3, width = 4096L, height = 4096L)
+cat(sprintf("文件快速可视化: %d 字节\n",
+            file.info(file.path(OUTPUT_DIR, "quick_file.png"))$size))
+```
+
+## 完成
+
+```{r done}
+cat("教程完成! 所有功能演示成功。\n")
+cat(sprintf("输出目录: %s\n", normalizePath(OUTPUT_DIR)))
+
+# 查看所有可用函数
+cat("\n所有可用函数列表:\n")
+cat(sprintf("  布局算法: %s\n", paste(gephi_list("layouts"), collapse = ", ")))
+cat(sprintf("  指标: %s\n", paste(gephi_list("metrics"), collapse = ", ")))
+cat(sprintf("  生成器: %s\n", paste(gephi_list("generators"), collapse = ", ")))
+cat(sprintf("  过滤器: %s\n", paste(gephi_list("filters"), collapse = ", ")))
+cat(sprintf("  预设: %s\n", paste(gephi_list("presets"), collapse = ", ")))
+```

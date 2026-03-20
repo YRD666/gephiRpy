@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test output
+test_output/
+test_results/
+output/
+tutorial_output/
+tutorial_output_R/
+
+# Gephi toolkit JAR (too large for git, download separately)
+lib/gephi-toolkit-*.jar
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Pytest
+.pytest_cache/
+
+# Temp files
+*.tmp
+*.bak

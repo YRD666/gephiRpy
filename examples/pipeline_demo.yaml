@@ -1,0 +1,44 @@
+# 示例 Pipeline: 生成图 → 计算指标 → 布局 → 样式 → 导出
+steps:
+  # 1. 生成随机图
+  - action: generate
+    nodes: 200
+    wiring_prob: 0.05
+
+  # 2. 计算指标
+  - action: metric
+    name: degree
+
+  - action: metric
+    name: modularity
+
+  - action: metric
+    name: pagerank
+
+  # 3. 运行 ForceAtlas2 布局
+  - action: layout
+    algorithm: forceatlas2
+    iterations: 300
+    params:
+      scaling: 2.0
+      gravity: 1.0
+
+  # 4. 按模块化社区着色
+  - action: appearance
+    type: color_by_modularity
+
+  # 5. 配置预览
+  - action: preview
+    show_labels: false
+    edge_opacity: 30
+    background_color: "#ffffff"
+
+  # 6. 导出为 PNG
+  - action: export
+    file: output/demo_graph.png
+    width: 2048
+    height: 2048
+
+  # 7. 导出为 GEXF
+  - action: export
+    file: output/demo_graph.gexf
