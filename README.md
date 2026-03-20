@@ -4,8 +4,8 @@ Python and R interface to Gephi graph analysis toolkit. Provides **CLI**, **Pyth
 
 ## Tutorials
 
-- **Python 教程 (Jupyter Notebook)**: [tutorial_python.html](tutorials/tutorial_python.html) | [tutorial_python.ipynb](tutorials/tutorial_python.ipynb)
-- **R 教程 (RMarkdown)**: [tutorial_R.html](tutorials/tutorial_R.html) | [tutorial_R.Rmd](tutorials/tutorial_R.Rmd)
+- **Python 教程**: [在线查看](https://yrd666.github.io/gephiRpy/tutorial_python.html) | [Notebook 源码](tutorials/tutorial_python.ipynb)
+- **R 教程**: [在线查看](https://yrd666.github.io/gephiRpy/tutorial_R.html) | [RMarkdown 源码](tutorials/tutorial_R.Rmd)
 
 ## Requirements
 
