@@ -635,12 +635,15 @@ preview.apply_preset("default", ws)
 preview.configure_preview(ws, show_labels=True, edge_opacity=30)
 preview.export_image(f"{OUTPUT_DIR}/demo_default.png", 2048, 2048, ws)
 print(f"\nPNG: {os.path.getsize(f'{OUTPUT_DIR}/demo_default.png')} 字节")
+from IPython.display import Image, display
+display(Image(filename=f"{OUTPUT_DIR}/demo_default.png", width=600))
 
 # 9.5 导出 PNG (黑底)
 preview.apply_preset("black_background", ws)
 preview.configure_preview(ws, show_labels=True, edge_opacity=50)
 preview.export_image(f"{OUTPUT_DIR}/demo_black.png", 2048, 2048, ws)
 print(f"PNG (黑底): {os.path.getsize(f'{OUTPUT_DIR}/demo_black.png')} 字节")
+display(Image(filename=f"{OUTPUT_DIR}/demo_black.png", width=600))
 
 # 9.6 导出 PDF
 preview.apply_preset("default", ws)
@@ -858,6 +861,8 @@ for i, r in enumerate(results):
 print(f"\n输出文件:")
 print(f"  PNG: {os.path.getsize(f'{OUTPUT_DIR}/pipeline_result.png')} 字节")
 print(f"  GEXF: {os.path.getsize(f'{OUTPUT_DIR}/pipeline_result.gexf')} 字节")
+from IPython.display import Image, display
+display(Image(filename=f"{OUTPUT_DIR}/pipeline_result.png", width=600))
 
 
 # ============================================================================

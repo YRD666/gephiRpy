@@ -561,6 +561,7 @@ gephi_export_image(ws, file.path(OUTPUT_DIR, "demo_default.png"),
                    width = 2048L, height = 2048L)
 cat(sprintf("PNG (白底): %d 字节\n",
             file.info(file.path(OUTPUT_DIR, "demo_default.png"))$size))
+knitr::include_graphics(file.path(OUTPUT_DIR, "demo_default.png"))
 ```
 
 ### 10.4 导出 PNG (黑底)
@@ -572,6 +573,7 @@ gephi_export_image(ws, file.path(OUTPUT_DIR, "demo_black.png"),
                    width = 2048L, height = 2048L)
 cat(sprintf("PNG (黑底): %d 字节\n",
             file.info(file.path(OUTPUT_DIR, "demo_black.png"))$size))
+knitr::include_graphics(file.path(OUTPUT_DIR, "demo_black.png"))
 ```
 
 ### 10.5 导出 PDF
@@ -647,6 +649,7 @@ cat(sprintf("执行完成: %d 个步骤\n", length(results)))
 png_path <- file.path(OUTPUT_DIR, "pipeline_result.png")
 if (file.exists(png_path)) {
   cat(sprintf("输出 PNG: %d 字节\n", file.info(png_path)$size))
+  knitr::include_graphics(png_path)
 }
 ```
 
@@ -665,6 +668,7 @@ gephi_quick(edges, file.path(OUTPUT_DIR, "quick_df.png"),
             duration = 3, width = 2048L, height = 2048L)
 cat(sprintf("data.frame 快速可视化: %d 字节\n",
             file.info(file.path(OUTPUT_DIR, "quick_df.png"))$size))
+knitr::include_graphics(file.path(OUTPUT_DIR, "quick_df.png"))
 ```
 
 ### 13.2 从矩阵快速可视化
@@ -680,6 +684,7 @@ gephi_quick(mat, file.path(OUTPUT_DIR, "quick_matrix.png"),
             algorithm = "yifan_hu", duration = 2)
 cat(sprintf("矩阵快速可视化: %d 字节\n",
             file.info(file.path(OUTPUT_DIR, "quick_matrix.png"))$size))
+knitr::include_graphics(file.path(OUTPUT_DIR, "quick_matrix.png"))
 ```
 
 ### 13.3 从 igraph 快速可视化 (黑底 PDF)
@@ -702,6 +707,7 @@ gephi_quick(file.path(OUTPUT_DIR, "sample.gexf"),
             duration = 3, width = 4096L, height = 4096L)
 cat(sprintf("文件快速可视化: %d 字节\n",
             file.info(file.path(OUTPUT_DIR, "quick_file.png"))$size))
+knitr::include_graphics(file.path(OUTPUT_DIR, "quick_file.png"))
 ```
 
 ## 完成
